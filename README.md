@@ -138,9 +138,7 @@ npm install -g newman-reporter-html
 ### Executar os testes
 
 ```bash
-newman run collections/ServeRest-API-Tests.postman_collection.json \
-  -e environments/serverest-env.postman_environment.json \
-  -r cli,html --reporter-html-export reports/report.html
+newman run collections/ServeRest-API-Tests.postman_collection.json -e environments/serverest-env.postman_environment.json -r cli -r html --reporter-html-export reports/report.html
 ```
 
 ## Instalação
