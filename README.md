@@ -141,6 +141,10 @@ npm install -g newman-reporter-html
 newman run collections/ServeRest-API-Tests.postman_collection.json -e environments/serverest-env.postman_environment.json -r cli -r html --reporter-html-export reports/report.html
 ```
 
+### Results
+
+Os resultados do testes estão na em desafio-api-QA/reports
+
 ## Instalação
 
 ```bash
