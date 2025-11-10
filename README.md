@@ -143,7 +143,7 @@ newman run collections/ServeRest-API-Tests.postman_collection.json -e environmen
 
 ### Results
 
-Os resultados do testes estão na em desafio-api-QA/reports
+Os resultados do testes estarão em desafio-api-QA/reports
 
 ## Instalação
 
