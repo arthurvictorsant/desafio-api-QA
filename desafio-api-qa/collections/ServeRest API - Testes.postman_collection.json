@@ -1,0 +1,628 @@
+{
+	"info": {
+		"_postman_id": "7f95360a-741d-4962-b2c6-d02ba9a72cc8",
+		"name": "ServeRest API - Testes Críticos",
+		"description": "Collection com 8 cenários críticos automatizados da API ServeRest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49948528",
+		"_collection_link": "https://arthurvictorsant-5114231.postman.co/workspace/Arthur-Victor's-Workspace~073d4f76-4960-4e56-8552-5fa4bb0ea98a/collection/49948528-7f95360a-741d-4962-b2c6-d02ba9a72cc8?action=share&source=collection_link&creator=49948528"
+	},
+	"item": [
+		{
+			"name": "1. Login",
+			"item": [
+				{
+					"name": "CT-001: Login com credenciais válidas",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const requestBody = {",
+									"    nome: 'Usuario Teste',",
+									"    email: pm.environment.get('email'),",
+									"    password: pm.environment.get('password'),",
+									"    administrador: 'true'",
+									"};",
+									"",
+									"pm.sendRequest({",
+									"    url: pm.environment.get('baseUrl') + '/usuarios',",
+									"    method: 'POST',",
+									"    header: {",
+									"        'Content-Type': 'application/json'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify(requestBody)",
+									"    }",
+									"}, function (err, res) {",
+									"    if (!err && res.json()._id) {",
+									"        pm.environment.set('userId', res.json()._id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de sucesso', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Login realizado com sucesso');",
+									"});",
+									"",
+									"pm.test('Deve retornar um token', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.authorization).to.exist;",
+									"    pm.expect(jsonData.authorization).to.be.a('string');",
+									"    pm.expect(jsonData.authorization.length).to.be.above(0);",
+									"    ",
+									"    pm.environment.set('token', jsonData.authorization);",
+									"});",
+									"",
+									"pm.test('Token deve ter formato válido', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.authorization).to.match(/^Bearer .+/);",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CT-002: Login com credenciais inválidas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de erro', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.exist;",
+									"    pm.expect(jsonData.message).to.eql('Email e/ou senha inválidos');",
+									"});",
+									"",
+									"pm.test('Não deve retornar token', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.authorization).to.not.exist;",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"invalido@teste.com\",\n  \"password\": \"senhaerrada123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Usuarios",
+			"item": [
+				{
+					"name": "CT-003: Criar usuário com sucesso",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Gerar email único para cada execução",
+									"const timestamp = Date.now();",
+									"const randomEmail = `user${timestamp}@teste.com`;",
+									"pm.environment.set('newUserEmail', randomEmail);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de cadastro realizado', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Cadastro realizado com sucesso');",
+									"});",
+									"",
+									"pm.test('Deve retornar um ID do usuário', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.exist;",
+									"    pm.expect(jsonData._id).to.be.a('string');",
+									"    pm.expect(jsonData._id.length).to.be.above(0);",
+									"    ",
+									"    // Salvar ID para possíveis consultas futuras",
+									"    pm.environment.set('createdUserId', jsonData._id);",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Novo Usuario QA\",\n  \"email\": \"{{newUserEmail}}\",\n  \"password\": \"teste123\",\n  \"administrador\": \"false\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CT-004: Impedir criação com email duplicado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de email já cadastrado', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Este email já está sendo usado');",
+									"});",
+									"",
+									"pm.test('Não deve retornar ID de usuário', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.not.exist;",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Usuario Duplicado\",\n  \"email\": \"{{email}}\",\n  \"password\": \"teste123\",\n  \"administrador\": \"false\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Produtos",
+			"item": [
+				{
+					"name": "CT-005: Criar produto autenticado como admin",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Gerar nome único para o produto",
+									"const timestamp = Date.now();",
+									"const productName = `Produto Teste ${timestamp}`;",
+									"pm.environment.set('productName', productName);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de cadastro realizado', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Cadastro realizado com sucesso');",
+									"});",
+									"",
+									"pm.test('Deve retornar um ID do produto', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.exist;",
+									"    pm.expect(jsonData._id).to.be.a('string');",
+									"    pm.expect(jsonData._id.length).to.be.above(0);",
+									"    ",
+									"    // Salvar ID do produto criado",
+									"    pm.environment.set('productId', jsonData._id);",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"{{productName}}\",\n  \"preco\": 150,\n  \"descricao\": \"Produto de teste automatizado\",\n  \"quantidade\": 100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/produtos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CT-006: Impedir criação sem autenticação",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de token ausente', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.exist;",
+									"    pm.expect(jsonData.message).to.eql('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');",
+									"});",
+									"",
+									"pm.test('Não deve retornar ID de produto', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.not.exist;",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Produto Sem Auth\",\n  \"preco\": 200,\n  \"descricao\": \"Tentativa sem token\",\n  \"quantidade\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/produtos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Carrinhos",
+			"item": [
+				{
+					"name": "CT-007: Criar carrinho e validar preço total",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Deve retornar mensagem de cadastro realizado', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Cadastro realizado com sucesso');",
+									"});",
+									"",
+									"pm.test('Deve retornar um ID do carrinho', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.exist;",
+									"    pm.expect(jsonData._id).to.be.a('string');",
+									"    ",
+									"    pm.environment.set('carrinhoId', jsonData._id);",
+									"});",
+									"",
+									"pm.test('Calcular preço total correto (quantidade x preço)', function () {",
+									"    const expectedTotal = 2 * 150;",
+									"    pm.expect(expectedTotal).to.eql(300);",
+									"    console.log('Cálculo esperado: 2 unidades x R$150 = R$300');",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"produtos\": [\n    {\n      \"idProduto\": \"{{productId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/carrinhos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"carrinhos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CT-008: Impedir quantidade maior que estoque",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"",
+									"pm.test('Não deve retornar ID de carrinho', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData._id).to.not.exist;",
+									"});",
+									"",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"produtos\": [\n    {\n      \"idProduto\": \"{{productId}}\",\n      \"quantidade\": 99999\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/carrinhos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"carrinhos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CT-009: Concluir compra (deletar carrinho)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code deve ser 200', function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test('Deve retornar mensagem de exclusão/conclusão', function () {\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.message).to.exist;\r",
+									"    const msg = jsonData.message.toLowerCase();\r",
+									"    pm.expect(msg).to.satisfy(function(message) {\r",
+									"        return message.includes('sucesso') || message.includes('excluído') || message.includes('concluída');\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"pm.test('Tempo de resposta deve ser menor que 2000ms', function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}"
+							}
+						],
+						"url": {
+							"raw": "https://serverest.dev/carrinhos/concluir-compra",
+							"protocol": "https",
+							"host": [
+								"serverest",
+								"dev"
+							],
+							"path": [
+								"carrinhos",
+								"concluir-compra"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE 'https://serverest.dev/carrinhos/concluir-compra' \\\r\n  -H 'Authorization: {{token}}'"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

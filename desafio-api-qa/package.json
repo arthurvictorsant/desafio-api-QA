@@ -1,0 +1,16 @@
+{
+  "name": "desafio-api-qa",
+  "version": "1.0.0",
+  "description": "Testes automatizados da API ServeRest",
+  "scripts": {
+    "test": "newman run collections/ServeRest-API-Tests.postman_collection.json -e environments/serverest-env.postman_environment.json -r cli,html --reporter-html-export reports/report.html",
+    "test:verbose": "newman run collections/ServeRest-API-Tests.postman_collection.json -e environments/serverest-env.postman_environment.json -r cli,html --reporter-html-export reports/report.html --verbose"
+  },
+  "keywords": ["api", "testing", "postman", "newman", "qa"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "newman": "^6.1.0",
+    "newman-reporter-html": "^1.0.5"
+  }
+}
