@@ -23,7 +23,7 @@ npm install
 
 Após executar os testes, o relatório HTML é gerado em:
 ```
-reports/report-YYYYMMDD-HHMMSS.html
+reports/report.html
 ```
 
 Abra o arquivo no navegador para ver os resultados detalhados.
